@@ -3,18 +3,21 @@ package br.univille.projdacs2018spring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.xpath;
 
 import br.univille.projdacs2018spring.controller.HomeController;
 import br.univille.projdacs2018spring.controller.PacienteController;
@@ -47,10 +50,25 @@ public class ProjDacs2018SpringApplicationTests {
 	
 	@Test
 	public void pacienteControllerTest() throws Exception {
-	//Teste do método index
-	this.mockMvc.perform(get("/paciente")).andDo(print()).andExpect(status().isOk())
-	.andExpect(xpath("//table").exists())
-	.andExpect(xpath("//td[contains(., 'Zezinho')]").exists());
+		//Teste do método index
+		this.mockMvc.perform(get("/paciente")).andExpect(status().isOk())
+					.andExpect(xpath("//table").exists());
 	}
+	
+	@Test
+    public void pacienteControllerSaveTest() throws Exception {
+        this.mockMvc.perform(post("/paciente")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("form", "")
+                .content("id=0&nome=zezinho&sexo=Masculino"))
+                .andDo(print())
+                .andExpect(status().isMovedTemporarily())
+                .andExpect(view().name("redirect:/paciente"));
+        
+        this.mockMvc.perform(get("/paciente")).andDo(print()).andExpect(status().isOk())
+        			.andExpect(xpath("/html/body/div/div/table/tbody/tr/td[1]/text()").string("zezinho"))
+        			.andExpect(xpath("/html/body/div/div/table/tbody/tr/td[2]/text()").string("Masculino"));
+            
+    }
 
 }
